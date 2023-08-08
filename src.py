@@ -1,53 +1,120 @@
-from antlr4 import InputStream,CommonTokenStream,ParseTreeWalker
-from TypeQLListener import TypeQLListener
+from antlr4 import InputStream,CommonTokenStream
+from antlr4.error.ErrorListener import ErrorListener
 from TypeQLLexer import TypeQLLexer
 from TypeQLParser import TypeQLParser
 from collections import deque
+import re
 import copy
 
-class keyPrinter(TypeQLListener):
-    pass
+class MyErrorListener(ErrorListener):
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        raise Exception(f"error message: {msg}")
+
+class my_type:
+    def __init__(self, name: str):
+        self.name = name
+        self.super_types = set()
+        self.abstract = False
+        self.roles= set()
+    def add_super_type(self,type: str):
+        self.super_types.add(type)
+    def set_abstract(self,positive: bool):
+        self.abstract=positive
+    def add_role(self,relation: str,role: str):
+        self.roles.add([relation,role])
 
 class typedb_schema_builder:
     schema=""
     context="?#"
     query_log=deque()
     query_id_generator=1
-    q_to_int={"abstract":1,"sub":2,"owns":3,"owns_as":4,"relates":5,"relates_as":6,"plays":7,
-              "plays_as":8,"value":9,"regex":10,"key":11,"unique":12}
+    types={}
     
     def __init__(self) -> None:
         self.schema="define"
         self.query_id_generator=1
+        self.types["attribute"]=my_type("attribute")
+        self.types["attribute"].add_super_type("premitive")
+        self.types["entity"]=my_type("entity")
+        self.types["entity"].add_super_type("premitive")
+        self.types["relation"]=my_type("relation")
+        self.types["relation"].add_super_type("premitive")
 
     def get_schema(self):
-        if( self.grammarCheck(copy.deepcopy(self.schema))==0 ):
-            print("grammar error in schema")
-            return 0
+        if(self.grammar_check(copy.deepcopy(self.schema))==0):
+            raise Exception("Grammar error\n")
+        if(self.check_regex()==0):
+            raise Exception("Regex error\n")
+        if(self.super_type_check()==0):
+            raise Exception("Error creating a type")
+        if(self.abstract_match_check()==0):
+            raise Exception("The two types on either side of an owns, relates, or plays edge must be either both abstract or both concrete.")
         
-        # if(self.constraintCheck()==0):
-        #     print("Invalid Constraints")
-        #     return 0
         print(self.schema)
         return 1
 
     # Error/exception catcher functions
-    def grammarCheck(self, query):
+    def grammar_check(self, query):
         lexer = TypeQLLexer(InputStream(query))
+        lexer.removeErrorListeners()  # Remove default error listeners
+        lexer.addErrorListener(MyErrorListener())
         stream = CommonTokenStream(lexer)
         parser = TypeQLParser(stream)
-
+        parser.removeErrorListeners()
+        parser.addErrorListener(MyErrorListener())
         try:
             parser.eof_queries()
             return True  # Parsing succeeded, so the expression is valid
         except Exception as e:
             print(f"Error: {e}")  # Print the error message
             return False  # Parsing failed, so the expression is not valid
+
+    def check_regex(self):
+        query_log_twin=copy.deepcopy(self.query_log)
+        n=len(query_log_twin)
+        for i in range(0,n):
+            query=query_log_twin[0]
+            query_log_twin.popleft()
+            if(query[0]=="regex"):
+                expression=r''+query[2]
+                re.compile(expression)
     
-    def constraintCheck():
-        pass
+    def abstract_match_check(self)-> bool:
+        query_log_twin=copy.deepcopy(self.query_log)
+        n=len(query_log_twin)
+        for i in range(0,n):
+            query=query_log_twin[0]
+            query_log_twin.popleft()
+            abstract_count=[0,0]
+            for j in range(0,len(query)):
+                if(query[j] in self.types.keys()):
+                    if("premitive" in self.types[query[j]].super_types):
+                        continue
+                    abstract_count[self.types[query[j]].abstract]+=1
+            if(abstract_count[0] and abstract_count[1]):
+                raise Exception("Error:Mixed types  Qid:",query[-1])
+        return 1
     
-    
+    def super_type_check(self)-> bool:
+        query_log_twin=copy.deepcopy(self.query_log)
+        n=len(query_log_twin)
+        for i in range(0,n):
+            query=query_log_twin[0]
+            query_log_twin.popleft()
+            if(query[0]=="sub"):
+                type=query[2]
+                subtype=query[1]
+                if(type not in self.types.keys()):
+                    raise Exception("Error defining subtype: ",subtype,"\nThe type: ",type," does not exist\nqid:",query[-1] )
+                if(subtype in self.types.keys()):
+                    if(len(self.types[subtype].super_types)>1):
+                        raise Exception("Error defining subtype: ",subtype,"\nThe subtype is already defined\nqid:",query[-1])
+            if(query[0]=="plays" or query[0]=="plays_as"):
+                if( len(self.types[query[1]]) ):
+                    raise Exception("Error, Cannot have multiple roles:", self.types[query[1]].roles,"\nqid:",query[-1])
+                
+        return 1
+        
     #defining functions
     def abstract(self,type: str):
         if(self.context==type):
@@ -56,15 +123,23 @@ class typedb_schema_builder:
             self.schema+="\n\tabstract;"
         else:
             self.context=type
-            self.schema+="\n"+type+"abstract;"
-        self.query_log.append([1,type,self.query_id_generator])
+            self.schema+="\n"+type+" abstract;"
+            
+        if(type not in self.types.keys()):
+            self.types[type]=my_type(type)
+        self.types[type].abstract=True
+        self.query_log.append(["abstract",type,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
     def sub(self,subtype: str,type: str):
         self.context=subtype
         self.schema+= "\n"+subtype+" sub "+type+";"
-        self.query_log.append([2,subtype,type,self.query_id_generator])
+        
+        if(subtype not in self.types.keys()):
+            self.types[subtype]=my_type(subtype)
+        self.types[subtype].add_super_type(type)
+        self.query_log.append(["sub",subtype,type,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
@@ -76,7 +151,7 @@ class typedb_schema_builder:
         else:
             self.context=type
             self.schema+= "\n"+type+" owns "+owns+";"
-        self.query_log.append([3,type,owns,self.query_id_generator])
+        self.query_log.append(["owns",type,owns,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
@@ -88,7 +163,7 @@ class typedb_schema_builder:
         else:
             self.context=type
             self.schema+= "\n"+type+" owns "+to_own+" as "+from_own+";"
-        self.query_log.append([4,type,to_own,from_own,self.query_id_generator])
+        self.query_log.append(["owns_as",type,to_own,from_own,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
@@ -100,7 +175,8 @@ class typedb_schema_builder:
         else:
             self.context=type
             self.schema+="\n"+type+" relates "+role+";"
-        self.query_log.append([5,type,role,self.query_id_generator])
+        
+        self.query_log.append(["relates",type,role,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
@@ -111,8 +187,8 @@ class typedb_schema_builder:
             self.schema+= "\n\towns "+to_role+" as "+from_role+";"
         else:
             self.context=type
-            self.schema+= "\n"+type+" owns "+to_role+" as "+from_role+";"
-        self.query_log.append([6,type,to_role,from_role,self.query_id_generator])
+            self.schema+= "\n"+type+" relates "+to_role+" as "+from_role+";"
+        self.query_log.append(["relates_as",type,to_role,from_role,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
@@ -124,19 +200,27 @@ class typedb_schema_builder:
         else:
             self.context=type
             self.schema+= "\n"+type+" plays "+relation+":"+role+";"
-        self.query_log.append([7,type,relation,role,self.query_id_generator])
+
+        if(type not in self.types.keys()):
+            self.types[type]=my_type(type)
+        self.types[type].add_role(relation,role)
+        self.query_log.append(["plays",type,relation,role,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
-    def plays_as(self,type: str,to_role: str,from_role: str):
+    def plays_as(self,type: str,relation: str,to_role: str,from_role: str):
         if(self.context==type):
             if(self.schema[-1]==';'):
                 self.schema=self.schema[:-1]+','
-            self.schema+= "\n\towns "+to_role+" as "+from_role+";"
+            self.schema+= "\n\tplays "+relation+":"+to_role+" as "+relation+":"+from_role+";"
         else:
             self.context=type
-            self.schema+= "\n"+type+" owns "+to_role+" as "+from_role+";"
-        self.query_log.append([8,type,to_role,from_role,self.query_id_generator])
+            self.schema+= "\n"+type+" plays "+relation+":"+to_role+" as "+relation+":"+from_role+";"
+
+        if(type not in self.types.keys()):
+            self.types[type]=my_type(type)
+        self.types[type].add_role(relation,to_role)
+        self.query_log.append(["plays_as",type,relation,to_role,from_role,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
@@ -148,11 +232,10 @@ class typedb_schema_builder:
         else:
             self.context=type
             self.schema+="\n"+type+" value "+value+";"
-        self.query_log.append([9,type,value,self.query_id_generator])
+        self.query_log.append(["value",type,value,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
-    # type must be an attribute
     def regex(self,type: str,regex: str):
         if(self.context==type):
             if(self.schema[-1]==';'):
@@ -161,7 +244,7 @@ class typedb_schema_builder:
         else:
             self.context=type
             self.schema+="\n"+type+" regex \""+regex+"\";"
-        self.query_log.append([10,type,regex,self.query_id_generator])
+        self.query_log.append(["regex",type,regex,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
 
@@ -173,7 +256,7 @@ class typedb_schema_builder:
         else:
             self.context=type
             self.schema+="\n"+type+" owns "+attribute+" @key;"
-        self.query_log.append([11,type,attribute,self.query_id_generator])
+        self.query_log.append(["key",type,attribute,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
         
@@ -185,38 +268,36 @@ class typedb_schema_builder:
         else:
             self.context=type
             self.schema+="\n"+type+" owns "+attribute+" @unique;"
-        self.query_log.append([12,type,attribute,self.query_id_generator])
+        self.query_log.append(["unique",type,attribute,self.query_id_generator])
         self.query_id_generator+=1
         return self.query_id_generator-1
     
     
     #idea for remove recontrust schema after negating some queries using query ids and reconstructing schema
-    #{{"abstract",1},{"sub",2},{"owns",3},{"owns_as",4},{"relates",5},{"relates_as",6},{"plays",7},
-    #           {"plays_as",8},{"value",9},{"regex",10},{"key",11},{"unique",12}}
     def make_query(self,query: list):
-        if(query[0]==1):
+        if(query[0]=="abstract"):
             self.abstract(query[1])
-        elif(query[0]==2):
+        elif(query[0]=="sub"):
             self.sub(query[1],query[2])
-        elif(query[0]==3):
+        elif(query[0]=="owns"):
             self.owns(query[1],query[2])
-        elif(query[0]==4):
+        elif(query[0]=="owns_as"):
             self.owns_as(query[1],query[2],query[3])
-        elif(query[0]==5):
+        elif(query[0]=="relates"):
             self.relates(query[1],query[2])
-        elif(query[0]==6):
+        elif(query[0]=="relates_as"):
             self.relates_as(query[1],query[2],query[3])
-        elif(query[0]==7):
+        elif(query[0]=="plays"):
             self.plays(query[1],query[2],query[3])
-        elif(query[0]==8):
+        elif(query[0]=="plays_as"):
             self.plays_as(query[1],query[2],query[3])
-        elif(query[0]==9):
+        elif(query[0]=="value"):
             self.value(query[1],query[2])
-        elif(query[0]==10):
+        elif(query[0]=="regex"):
             self.regex(query[1],query[2])
-        elif(query[0]==11):
+        elif(query[0]=="key"):
             self.key(query[1],query[2])
-        elif(query[0]==12):
+        elif(query[0]=="unique"):
             self.unique(query[1],query[2])
             
     def remove(self,q_ids: list):
@@ -228,5 +309,7 @@ class typedb_schema_builder:
             if query[-1] in q_ids:
                 continue
             self.make_query(query)
-            self.query_log.append(query)
-        
+    
+    def print_query_log(self):
+        for q in self.query_log:
+            print(q)        
