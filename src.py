@@ -23,24 +23,13 @@ class my_type:
     def add_role(self,relation: str,role: str):
         self.roles.add([relation,role])
 
-class typedb_schema_builder:
-    schema=""
-    context="?#"
-    query_log=deque()
-    query_id_generator=1
-    types={}
-    
-    def __init__(self) -> None:
-        self.schema="define"
-        self.query_id_generator=1
-        self.types["attribute"]=my_type("attribute")
-        self.types["attribute"].add_super_type("premitive")
-        self.types["entity"]=my_type("entity")
-        self.types["entity"].add_super_type("premitive")
-        self.types["relation"]=my_type("relation")
-        self.types["relation"].add_super_type("premitive")
-
-    def get_schema(self):
+class typedb_schema_builder_exceptions():
+    def __init__(self,schema: str,query_log: deque,types: dict) -> None:
+        self.schema=schema
+        self.query_log=query_log
+        self.types=types
+        
+    def test(self):
         if(self.grammar_check(copy.deepcopy(self.schema))==0):
             raise Exception("Grammar error\n")
         if(self.check_regex()==0):
@@ -50,10 +39,6 @@ class typedb_schema_builder:
         if(self.abstract_match_check()==0):
             raise Exception("The two types on either side of an owns, relates, or plays edge must be either both abstract or both concrete.")
         
-        print(self.schema)
-        return 1
-
-    # Error/exception catcher functions
     def grammar_check(self, query):
         lexer = TypeQLLexer(InputStream(query))
         lexer.removeErrorListeners()  # Remove default error listeners
@@ -112,10 +97,33 @@ class typedb_schema_builder:
             if(query[0]=="plays" or query[0]=="plays_as"):
                 if( len(self.types[query[1]]) ):
                     raise Exception("Error, Cannot have multiple roles:", self.types[query[1]].roles,"\nqid:",query[-1])
-                
         return 1
-        
-    #defining functions
+    
+class typedb_schema_builder:
+    schema=""
+    context="?#"
+    query_log=deque()
+    query_id_generator=1
+    types={}
+    
+    def __init__(self) -> None:
+        self.schema="define"
+        self.query_id_generator=1
+        self.types["attribute"]=my_type("attribute")
+        self.types["attribute"].add_super_type("premitive")
+        self.types["entity"]=my_type("entity")
+        self.types["entity"].add_super_type("premitive")
+        self.types["relation"]=my_type("relation")
+        self.types["relation"].add_super_type("premitive")
+
+    def get_schema(self):
+        checker=typedb_schema_builder_exceptions(schema=self.schema,query_log=self.query_log,types=self.types)
+        checker.test()
+        escaped_string = r''+self.schema
+        decoded_string = bytes(escaped_string, "utf-8").decode("unicode_escape")
+        print(decoded_string)
+        return decoded_string
+
     def abstract(self,type: str):
         if(self.context==type):
             if(self.schema[-1]==';'):
