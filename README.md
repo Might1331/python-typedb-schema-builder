@@ -2,7 +2,7 @@
 typedb schema builder package for linkml
 
 How to test the builder out:
-1. Unzip the file after downloading it here: https://drive.google.com/drive/folders/1Z4BlQFT0-70D8-ry8QsLb674ouVJ9zZV?usp=sharing 
+1. Download the folder here: https://drive.google.com/drive/folders/1Z4BlQFT0-70D8-ry8QsLb674ouVJ9zZV?usp=sharing 
 2. Run
 
    ``` python -m venv .venv ```
