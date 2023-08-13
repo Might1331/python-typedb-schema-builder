@@ -1,5 +1,5 @@
 # python-typedb-schema-builder
-typedb schema builder package for linkml
+typedb schema builder package
 
 How to test the builder out:
 1. Download the folder here: https://drive.google.com/drive/folders/1Z4BlQFT0-70D8-ry8QsLb674ouVJ9zZV?usp=sharing 
