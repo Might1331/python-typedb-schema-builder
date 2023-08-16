@@ -1,8 +1,8 @@
 from collections import deque
 from .my_type import my_type
-from .exceptions import typedb_exceptions
+from .exceptions import exceptions
 
-class typedb_schema_builder:
+class builder:
     schema = ""
     context = "?#"
     query_log = deque()
@@ -13,14 +13,14 @@ class typedb_schema_builder:
         self.schema = "define"
         self.query_id_generator = 1
         self.types["attribute"] = my_type("attribute")
-        self.types["attribute"].add_super_type("premitive")
+        self.types["attribute"].add_super_type("thing")
         self.types["entity"] = my_type("entity")
-        self.types["entity"].add_super_type("premitive")
+        self.types["entity"].add_super_type("thing")
         self.types["relation"] = my_type("relation")
-        self.types["relation"].add_super_type("premitive")
+        self.types["relation"].add_super_type("thing")
 
     def get_schema(self):
-        checker = typedb_exceptions (
+        checker = exceptions (
             schema=self.schema, query_log=self.query_log, types=self.types
         )
         checker.test()

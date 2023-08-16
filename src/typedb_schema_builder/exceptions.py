@@ -1,18 +1,12 @@
 from antlr4 import InputStream, CommonTokenStream
 from .TypeQLLexer import TypeQLLexer
 from .TypeQLParser import TypeQLParser
-from antlr4.error.ErrorListener import ErrorListener
+from .MyErrorListener import MyErrorListener
 from collections import deque
 import re
 import copy
 
-
-class MyErrorListener(ErrorListener):
-    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        raise Exception(f"error message: {msg}")
-
-
-class typedb_exceptions:
+class exceptions:
     def __init__(self, schema: str, query_log: deque, types: dict) -> None:
         self.schema = schema
         self.query_log = query_log
