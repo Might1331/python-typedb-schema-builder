@@ -4,3 +4,6 @@ __pycache__
 tests
 grammar
 .typedb-studio
+dist
+build
+typedb_schema_builder.egg-info

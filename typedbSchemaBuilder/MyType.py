@@ -1,4 +1,4 @@
-class my_type:
+class MyType:
     def __init__(self, name: str):
         self.name = name
         self.super_types = set()
@@ -6,14 +6,14 @@ class my_type:
         self.roles = set()
         self.attributes = set()
 
-    def add_super_type(self, type: str):
+    def AddSuperType(self, type: str):
         self.super_types.add(type)
 
-    def set_abstract(self, positive: bool):
+    def SetAbstract(self, positive: bool):
         self.abstract = positive
 
-    def add_role(self, relation: str, role: str):
+    def AddRole(self, relation: str, role: str):
         self.roles.add([relation, role])
 
-    def add_attribute(self, attribute: str):
+    def AddAttribute(self, attribute: str):
         self.attributes.add(attribute)
