@@ -7,27 +7,22 @@ import re
 import copy
 
 class exceptions:
-    def __init__(self, schema: str, query_log: deque, types: dict) -> None:
+    def __init__(self, schema: str, QueryLog: deque, types: dict) -> None:
         self.schema = schema
-        self.query_log = query_log
+        self.QueryLog = QueryLog
         self.types = types
 
     def test(self):
-        if self.grammar_check(copy.deepcopy(self.schema)) == 0:
+        if(len(self.QueryLog)==0):
+            raise Exception("Error: Schema is empty. Make changes to the schema before attempting GetSchema")
+        if self.GrammarCheck(copy.deepcopy(self.schema)) == 0:
             raise Exception("Grammar error\n")
-        if self.check_regex() == 0:
-            raise Exception("Regex error\n")
-        if self.super_type_check() == 0:
-            raise Exception("Error creating a type")
-        if self.abstract_match_check() == 0:
-            raise Exception(
-                "The two types on either side of an owns, relates, or plays edge must be either both abstract or both concrete."
-            )
-        if self.key_unique_ownership_check() == 0:
-            raise Exception("Error with key or unique action")
-        return 1
+        self.CheckRegex()
+        self.SuperTypeCheck()
+        self.AbstractMatchCheck()
+        self.KeyUniqueOwnershipCheck()
 
-    def grammar_check(self, query):
+    def GrammarCheck(self, query):
         lexer = TypeQLLexer(InputStream(query))
         lexer.removeErrorListeners()  # Remove default error listeners
         lexer.addErrorListener(MyErrorListener())
@@ -42,38 +37,37 @@ class exceptions:
             print(f"Error: {e}")  # Print the error message
             return False  # Parsing failed, so the expression is not valid
 
-    def check_regex(self):
-        query_log_twin = copy.deepcopy(self.query_log)
-        n = len(query_log_twin)
+    def CheckRegex(self):
+        QueryLog_twin = copy.deepcopy(self.QueryLog)
+        n = len(QueryLog_twin)
         for i in range(0, n):
-            query = query_log_twin[0]
-            query_log_twin.popleft()
+            query = QueryLog_twin[0]
+            QueryLog_twin.popleft()
             if query[0] == "regex":
                 expression = r"" + query[2]
                 re.compile(expression)
 
-    def abstract_match_check(self) -> bool:
-        query_log_twin = copy.deepcopy(self.query_log)
-        n = len(query_log_twin)
+    def AbstractMatchCheck(self) -> bool:
+        QueryLog_twin = copy.deepcopy(self.QueryLog)
+        n = len(QueryLog_twin)
         for i in range(0, n):
-            query = query_log_twin[0]
-            query_log_twin.popleft()
+            query = QueryLog_twin[0]
+            QueryLog_twin.popleft()
             abstract_count = [0, 0]
             for j in range(0, len(query)):
                 if query[j] in self.types.keys():
-                    if "premitive" in self.types[query[j]].super_types:
+                    if "thing" in self.types[query[j]].super_types:
                         continue
                     abstract_count[self.types[query[j]].abstract] += 1
             if abstract_count[0] and abstract_count[1]:
                 raise Exception("Error:Mixed types  Qid:", query[-1])
-        return 1
 
-    def super_type_check(self) -> bool:
-        query_log_twin = copy.deepcopy(self.query_log)
-        n = len(query_log_twin)
+    def SuperTypeCheck(self) -> bool:
+        QueryLog_twin = copy.deepcopy(self.QueryLog)
+        n = len(QueryLog_twin)
         for i in range(0, n):
-            query = query_log_twin[0]
-            query_log_twin.popleft()
+            query = QueryLog_twin[0]
+            QueryLog_twin.popleft()
             if query[0] == "sub":
                 type = query[2]
                 subtype = query[1]
@@ -102,14 +96,13 @@ class exceptions:
                         "\nqid:",
                         query[-1],
                     )
-        return 1
 
-    def key_unique_ownership_check(self) -> bool:
-        query_log_twin = copy.deepcopy(self.query_log)
-        n = len(query_log_twin)
+    def KeyUniqueOwnershipCheck(self) -> bool:
+        QueryLog_twin = copy.deepcopy(self.QueryLog)
+        n = len(QueryLog_twin)
         for i in range(0, n):
-            query = query_log_twin[0]
-            query_log_twin.popleft()
+            query = QueryLog_twin[0]
+            QueryLog_twin.popleft()
             if query[0] == "key" or query[0] == "unique":
                 type = query[1]
                 owns = query[2]
@@ -122,4 +115,3 @@ class exceptions:
                         "\nqid:",
                         query[-1],
                     )
-        return 1

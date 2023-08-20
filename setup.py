@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="typedbSchemaBuilder",
-    version="0.0.1",
+    name="typedb-schema-builder",
+    version="11.0.1",
     description = "typedb schema builder package",
     packages=find_packages(),
     install_requires=[

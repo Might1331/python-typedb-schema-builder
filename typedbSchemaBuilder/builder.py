@@ -19,7 +19,7 @@ class builder:
         self.types["relation"] = MyType("relation")
         self.types["relation"].AddSuperType("thing")
 
-    def get_schema(self):
+    def getSchema(self):
         checker = exceptions (
             schema=self.schema, QueryLog=self.QueryLog, types=self.types
         )
@@ -29,7 +29,7 @@ class builder:
         print(decodedString)
         return decodedString
 
-    def abstract(self, type: str):
+    def abstract(self, type: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -41,22 +41,40 @@ class builder:
         if type not in self.types.keys():
             self.types[type] = MyType(type)
         self.types[type].abstract = True
-        self.QueryLog.append(["abstract", type, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        
+        if(qid==-1):
+            self.QueryLog.append(["abstract", type, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["abstract", type, qid])
+            
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def sub(self, subtype: str, type: str):
+    def sub(self, subtype: str, type: str, qid: int=-1):
         self.context = subtype
         self.schema += "\n" + subtype + " sub " + type + ";"
 
         if subtype not in self.types.keys():
             self.types[subtype] = MyType(subtype)
         self.types[subtype].AddSuperType(type)
-        self.QueryLog.append(["sub", subtype, type, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        
+        if(qid==-1):
+            self.QueryLog.append(["sub", subtype, type, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["sub", subtype, type, qid])
+            
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def owns(self, type: str, owns: str):
+    def owns(self, type: str, owns: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -68,11 +86,20 @@ class builder:
         if type not in self.types.keys():
             self.types[type] = MyType(type)
         self.types[type].AddAttribute(owns)
-        self.QueryLog.append(["owns", type, owns, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        
+        if(qid==-1):
+            self.QueryLog.append(["owns", type, owns, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["owns", type, owns, qid])
+            
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def ownsAs(self, type: str, to_own: str, from_own: str):
+    def ownsAs(self, type: str, to_own: str, from_own: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -84,13 +111,20 @@ class builder:
         if type not in self.types.keys():
             self.types[type] = MyType(type)
         self.types[type].AddAttribute(to_own)
-        self.QueryLog.append(
-            ["ownsAs", type, to_own, from_own, self.QueryIdGenerator]
+        
+        if(qid==-1):
+            self.QueryLog.append( ["ownsAs", type, to_own, from_own, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append( ["ownsAs", type, to_own, from_own, qid])
+            
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
         )
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def relates(self, type: str, role: str):
+    def relates(self, type: str, role: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -99,11 +133,19 @@ class builder:
             self.context = type
             self.schema += "\n" + type + " relates " + role + ";"
 
-        self.QueryLog.append(["relates", type, role, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        if(qid==-1):
+            self.QueryLog.append(["relates", type, role, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["relates", type, role, qid])
+            
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def relatesAs(self, type, toRole: str, fromRole: str):
+    def relatesAs(self, type, toRole: str, fromRole: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -113,13 +155,20 @@ class builder:
             self.schema += (
                 "\n" + type + " relates " + toRole + " as " + fromRole + ";"
             )
-        self.QueryLog.append(
-            ["relatesAs", type, toRole, fromRole, self.QueryIdGenerator]
+        
+        if(qid==-1):
+            self.QueryLog.append( ["relatesAs", type, toRole, fromRole, self.QueryIdGenerator] )
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append( ["relatesAs", type, toRole, fromRole, qid] )
+            
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
         )
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def plays(self, type: str, relation: str, role: str):
+    def plays(self, type: str, relation: str, role: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -131,11 +180,20 @@ class builder:
         if type not in self.types.keys():
             self.types[type] = MyType(type)
         self.types[type].AddRole(relation, role)
-        self.QueryLog.append(["plays", type, relation, role, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        
+        if(qid==-1):
+            self.QueryLog.append(["plays", type, relation, role, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["plays", type, relation, role, qid])
+            
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def playsAs(self, type: str, relation: str, toRole: str, fromRole: str):
+    def playsAs(self, type: str, relation: str, toRole: str, fromRole: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -169,13 +227,20 @@ class builder:
         if type not in self.types.keys():
             self.types[type] = MyType(type)
         self.types[type].AddRole(relation, toRole)
-        self.QueryLog.append(
-            ["playsAs", type, relation, toRole, fromRole, self.QueryIdGenerator]
-        )
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        
+        if(qid==-1):
+            self.QueryLog.append( ["playsAs", type, relation, toRole, fromRole, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append( ["playsAs", type, relation, toRole, fromRole, qid])
 
-    def value(self, type: str, value: str):
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
+
+    def value(self, type: str, value: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -183,11 +248,20 @@ class builder:
         else:
             self.context = type
             self.schema += "\n" + type + " value " + value + ";"
-        self.QueryLog.append(["value", type, value, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        
+        if(qid==-1):
+            self.QueryLog.append(["value", type, value, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["value", type, value, qid])
+        
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def regex(self, type: str, regex: str):
+    def regex(self, type: str, regex: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -195,11 +269,20 @@ class builder:
         else:
             self.context = type
             self.schema += "\n" + type + ' regex "' + regex + '";'
-        self.QueryLog.append(["regex", type, regex, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        
+        if(qid==-1):
+            self.QueryLog.append(["regex", type, regex, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["regex", type, regex, qid])
+            
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def key(self, type: str, attribute: str):
+    def key(self, type: str, attribute: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -207,11 +290,20 @@ class builder:
         else:
             self.context = type
             self.schema += "\n" + type + " owns " + attribute + " @key;"
-        self.QueryLog.append(["key", type, attribute, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+        
+        if(qid==-1):
+            self.QueryLog.append(["key", type, attribute, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["key", type, attribute, qid])
+        
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
-    def unique(self, type: str, attribute: str):
+    def unique(self, type: str, attribute: str, qid: int=-1):
         if self.context == type:
             if self.schema[-1] == ";":
                 self.schema = self.schema[:-1] + ","
@@ -219,9 +311,18 @@ class builder:
         else:
             self.context = type
             self.schema += "\n" + type + " owns " + attribute + " @unique;"
-        self.QueryLog.append(["unique", type, attribute, self.QueryIdGenerator])
-        self.QueryIdGenerator += 1
-        return self.QueryIdGenerator - 1
+            
+        if(qid==-1):
+            self.QueryLog.append(["unique", type, attribute, self.QueryIdGenerator])
+            self.QueryIdGenerator += 1
+        else:
+            self.QueryLog.append(["unique", type, attribute, qid])
+
+        checker = exceptions (
+            schema=self.schema, QueryLog=self.QueryLog, types=self.types
+        )
+        checker.test()
+        return self.QueryLog[-1][-1]
 
     # idea for remove recontrust schema after negating some queries using query ids and reconstructing schema
     def makeQuery(self, query: list):
