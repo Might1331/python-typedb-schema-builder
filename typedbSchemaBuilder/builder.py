@@ -1,6 +1,6 @@
 from collections import deque
-from .type import Type
-from .exceptions import SchemaChecker
+from .Type import Type
+from .Exceptions import SchemaChecker
 
 class Builder:
     def __init__(self) -> None:

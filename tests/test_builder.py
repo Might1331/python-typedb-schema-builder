@@ -1,10 +1,10 @@
 import unittest
-from typedbSchemaBuilder import builder
+from typedbSchemaBuilder import Builder
 
 class TestBuilder(unittest.TestCase):
 
     def setUp(self):
-        self.builder_instance = builder.Builder()
+        self.builder_instance = Builder.Builder()
 
     def test_abstract(self):
         self.builder_instance.sub("brother","entity")
