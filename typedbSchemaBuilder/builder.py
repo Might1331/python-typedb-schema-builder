@@ -1,8 +1,8 @@
 from collections import deque
-from .my_type import Type
+from .type import Type
 from .exceptions import SchemaChecker
 
-class builder:
+class Builder:
     def __init__(self) -> None:
         self._schema = "define"
         self._context = "?#"

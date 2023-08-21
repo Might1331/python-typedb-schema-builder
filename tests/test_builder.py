@@ -4,7 +4,7 @@ from typedbSchemaBuilder import builder
 class TestBuilder(unittest.TestCase):
 
     def setUp(self):
-        self.builder_instance = builder.builder()
+        self.builder_instance = builder.Builder()
 
     def test_abstract(self):
         self.builder_instance.sub("brother","entity")
