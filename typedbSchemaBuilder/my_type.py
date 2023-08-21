@@ -1,4 +1,4 @@
-class MyType:
+class Type:
     def __init__(self, name: str):
         self.name = name
         self.super_types = set()

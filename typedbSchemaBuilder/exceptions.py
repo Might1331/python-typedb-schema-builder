@@ -6,7 +6,7 @@ from collections import deque
 import re
 import copy
 
-class TypeQLExceptions:
+class SchemaChecker:
     def __init__(self, schema: str, query_log: deque, types_: dict) -> None:
         self.schema = schema
         self.query_log = query_log
