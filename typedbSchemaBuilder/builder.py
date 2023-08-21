@@ -323,31 +323,10 @@ class builder:
         return self._query_log[-1][-1]
 
     # idea for remove recontrust schema after negating some queries using query ids and reconstructing schema
-    def makeQuery(self, query: list):
-        if query[0] == "abstract":
-            self.abstract(query[1])
-        elif query[0] == "sub":
-            self.sub(query[1], query[2])
-        elif query[0] == "owns":
-            self.owns(query[1], query[2])
-        elif query[0] == "own_as":
-            self.own_as(query[1], query[2], query[3])
-        elif query[0] == "relates":
-            self.relates(query[1], query[2])
-        elif query[0] == "relatesAs":
-            self.relatesAs(query[1], query[2], query[3])
-        elif query[0] == "plays":
-            self.plays(query[1], query[2], query[3])
-        elif query[0] == "plays_as":
-            self.plays_as(query[1], query[2], query[3])
-        elif query[0] == "value":
-            self.value(query[1], query[2])
-        elif query[0] == "regex":
-            self.regex(query[1], query[2])
-        elif query[0] == "key":
-            self.key(query[1], query[2])
-        elif query[0] == "unique":
-            self.unique(query[1], query[2])
+    def make_query(self, query: list):
+            query_type = query[0]
+            method_name = query_type.replace("_", "")
+            getattr(self, method_name)(*query[1:])
 
     def remove(self, q_ids: list):
         n = len(self._query_log)
@@ -357,8 +336,8 @@ class builder:
             self._query_log.popleft()
             if query[-1] in q_ids:
                 continue
-            self.makeQuery(query)
+            self.make_query(query)
 
-    def printquery_log(self):
+    def print_query_log(self):
         for q in self._query_log:
             print(q)

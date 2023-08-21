@@ -12,17 +12,17 @@ class TypeQLExceptions:
         self.query_log = query_log
         self.types = types_
 
-    def test(self):
+    def test(self)-> None:
         if len(self.query_log) == 0:
             raise Exception("Error: Schema is empty. Make changes to the schema before attempting GetSchema")
-        if self.grammar_check(copy.deepcopy(self.schema)) == 0:
+        if not self.grammar_check(copy.deepcopy(self.schema)):
             raise Exception("Grammar error\n")
         self.check_regex()
         self.super_type_check()
         self.abstract_match_check()
         self.key_unique_ownership_check()
 
-    def grammar_check(self, query):
+    def grammar_check(self, query: str)-> bool:
         lexer = TypeQLLexer(InputStream(query))
         lexer.removeErrorListeners()  # Remove default error listeners
         lexer.addErrorListener(MyErrorListener())
@@ -37,7 +37,7 @@ class TypeQLExceptions:
             print(f"Error: {e}")  # Print the error message
             return False  # Parsing failed, so the expression is not valid
 
-    def check_regex(self):
+    def check_regex(self)-> None:
         query_log_twin = copy.deepcopy(self.query_log)
         n = len(query_log_twin)
         for i in range(0, n):
@@ -47,7 +47,7 @@ class TypeQLExceptions:
                 expression = r"" + query[2]
                 re.compile(expression)
 
-    def abstract_match_check(self) -> bool:
+    def abstract_match_check(self) -> None:
         query_log_twin = copy.deepcopy(self.query_log)
         n = len(query_log_twin)
         for i in range(0, n):
@@ -62,7 +62,7 @@ class TypeQLExceptions:
             if abstract_count[0] and abstract_count[1]:
                 raise Exception("Error: Mixed types  Qid:", query[-1])
 
-    def super_type_check(self) -> bool:
+    def super_type_check(self) -> None:
         query_log_twin = copy.deepcopy(self.query_log)
         n = len(query_log_twin)
         for i in range(0, n):
@@ -97,7 +97,7 @@ class TypeQLExceptions:
                         query[-1],
                     )
 
-    def key_unique_ownership_check(self) -> bool:
+    def key_unique_ownership_check(self) -> None:
         query_log_twin = copy.deepcopy(self.query_log)
         n = len(query_log_twin)
         for i in range(0, n):
