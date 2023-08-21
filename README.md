@@ -9,9 +9,9 @@ How to test the builder out:
 2. Create builder_instance and use following methods offered via builder instance to create your schemas
 
    ``` 
-      from typedbSchemaBuilder import builder
-
-      builder_instance=builder.builder()
+      from typedbSchemaBuilder import Builder
+      
+      builder_instance=Builder.Builder()
    ```
 
    
