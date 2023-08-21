@@ -1,7 +1,6 @@
 .venv
 main.py
 __pycache__
-tests
 grammar
 .typedb-studio
 dist

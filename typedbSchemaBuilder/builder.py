@@ -31,7 +31,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\tabstract;"
+            self._schema += "\n    abstract;"
         else:
             self._context = type_
             self._schema += "\n" + type_ + " abstract;"
@@ -76,7 +76,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\towns " + owns + ";"
+            self._schema += "\n    owns " + owns + ";"
         else:
             self._context = type_
             self._schema += "\n" + type_ + " owns " + owns + ";"
@@ -101,7 +101,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\towns " + to_own + " as " + from_own + ";"
+            self._schema += "\n    owns " + to_own + " as " + from_own + ";"
         else:
             self._context = type_
             self._schema += "\n" + type_ + " owns " + to_own + " as " + from_own + ";"
@@ -126,7 +126,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\trelates " + role + ";"
+            self._schema += "\n    relates " + role + ";"
         else:
             self._context = type_
             self._schema += "\n" + type_ + " relates " + role + ";"
@@ -147,7 +147,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\towns " + toRole + " as " + fromRole + ";"
+            self._schema += "\n    owns " + toRole + " as " + fromRole + ";"
         else:
             self._context = type_
             self._schema += (
@@ -170,7 +170,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\tplays " + relation + ":" + role + ";"
+            self._schema += "\n    plays " + relation + ":" + role + ";"
         else:
             self._context = type_
             self._schema += "\n" + type_ + " plays " + relation + ":" + role + ";"
@@ -196,7 +196,7 @@ class builder:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
             self._schema += (
-                "\n\tplays "
+                "\n    plays "
                 + relation
                 + ":"
                 + toRole
@@ -242,7 +242,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\tvalue " + value + ";"
+            self._schema += "\n    value " + value + ";"
         else:
             self._context = type_
             self._schema += "\n" + type_ + " value " + value + ";"
@@ -263,7 +263,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += '\n\tregex "' + regex + '";'
+            self._schema += '\n    regex "' + regex + '";'
         else:
             self._context = type_
             self._schema += "\n" + type_ + ' regex "' + regex + '";'
@@ -284,7 +284,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\towns " + attribute + " @key;"
+            self._schema += "\n    owns " + attribute + " @key;"
         else:
             self._context = type_
             self._schema += "\n" + type_ + " owns " + attribute + " @key;"
@@ -305,7 +305,7 @@ class builder:
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n\towns " + attribute + " @unique;"
+            self._schema += "\n    owns " + attribute + " @unique;"
         else:
             self._context = type_
             self._schema += "\n" + type_ + " owns " + attribute + " @unique;"
