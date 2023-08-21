@@ -56,8 +56,8 @@ Makes the attribute given as atrgument "attribute" that is owned by type given a
 * builder_instance.unique(self, type: str, attribute: str):
 Makes the attribute given as atrgument "attribute" that is owned by type given as argument "type" a @unique attribute. Returns qid attached to the query.
 
-*print_query_log():
+* builder_instance.print_query_log():
 Prints all the query IDs attached to every query.
 
-*remove(q_ids: list):
+* builder_instance.remove(q_ids: list):
 Removes all the queries given in list argument "q_ids". And re-renders the remaining queries.
