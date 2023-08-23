@@ -13,18 +13,18 @@ How to test the builder out:
    ```
       from typedbSchemaBuilder import Builder
       
-      schema=Builder.Builder()
+      builder_instance=Builder.Builder()
       
-      schema.sub("person","entity")
-      schema.owns("person","name")
+      builder_instance.sub("person","entity")
+      builder_instance.owns("person","name")
       
-      schema.sub("name","attribute")
-      schema.value("name","string")
-      schema.regex("name","a-zA-Z0-9,\\.\'")
+      builder_instance.sub("name","attribute")
+      builder_instance.value("name","string")
+      builder_instance.regex("name","a-zA-Z0-9,\\.\'")
       
-      qid=schema.key("person","name")
-      schema.remove([qid])
-      schema.get_schema()
+      qid=builder_instance.key("person","name")
+      builder_instance.remove([qid])
+      builder_instance.get_schema()
    ```
    ```
       Output:
