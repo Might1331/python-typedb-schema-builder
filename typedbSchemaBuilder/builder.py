@@ -18,13 +18,13 @@ class Builder:
         self._types["relation"].add_super_type("thing")
 
     def get_schema(self):
-        checker = SchemaChecker(
-            schema=self._schema, query_log=self._query_log, types_=self._types
-        )
-        checker.test()
         escaped_string = r"" + self._schema
         decoded_string = bytes(escaped_string, "utf-8").decode("unicode_escape")
         print(decoded_string)
+        checker = SchemaChecker (
+            schema=self._schema, query_log=self._query_log, types_=self._types
+        )
+        checker.test()
         return decoded_string
 
     def abstract(self, type_: str, qid: int=-1):
@@ -36,9 +36,6 @@ class Builder:
             self._context = type_
             self._schema += "\n" + type_ + " abstract;"
 
-        if type_ not in self._types.keys():
-            self._types[type_] = Type(type_)
-        self._types[type_].abstract = True
         
         if(qid==-1):
             self._query_log.append(["abstract", type_, self._query_id_generator])
@@ -50,16 +47,17 @@ class Builder:
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
         checker.test()
+        self._types[type_].abstract = True
+        checker = SchemaChecker (
+            schema=self._schema, query_log=self._query_log, types_=self._types
+        )
+        checker.test()
         return self._query_log[-1][-1]
 
     def sub(self, subtype: str, type_: str, qid: int=-1):
         self._context = subtype
         self._schema += "\n" + subtype + " sub " + type_ + ";"
 
-        if subtype not in self._types.keys():
-            self._types[subtype] = Type(subtype)
-        self._types[subtype].add_super_type(type_)
-        
         if(qid==-1):
             self._query_log.append(["sub", subtype, type_, self._query_id_generator])
             self._query_id_generator += 1
@@ -70,6 +68,13 @@ class Builder:
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
         checker.test()
+        self._types[subtype] = Type(subtype)
+        self._types[subtype].add_super_type(type_)            
+        checker = SchemaChecker (
+            schema=self._schema, query_log=self._query_log, types_=self._types
+        )
+        checker.test()
+        
         return self._query_log[-1][-1]
 
     def owns(self, type_: str, owns: str, qid: int=-1):
@@ -81,16 +86,18 @@ class Builder:
             self._context = type_
             self._schema += "\n" + type_ + " owns " + owns + ";"
 
-        if type_ not in self._types.keys():
-            self._types[type_] = Type(type_)
-        self._types[type_].add_attribute(owns)
-        
+
         if(qid==-1):
             self._query_log.append(["owns", type_, owns, self._query_id_generator])
             self._query_id_generator += 1
         else:
             self._query_log.append(["owns", type_, owns, qid])
-            
+
+        checker = SchemaChecker (
+            schema=self._schema, query_log=self._query_log, types_=self._types
+        )
+        checker.test()
+        self._types[type_].add_attribute(owns)
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
@@ -105,17 +112,18 @@ class Builder:
         else:
             self._context = type_
             self._schema += "\n" + type_ + " owns " + to_own + " as " + from_own + ";"
-
-        if type_ not in self._types.keys():
-            self._types[type_] = Type(type_)
-        self._types[type_].add_attribute(to_own)
         
         if(qid==-1):
             self._query_log.append( ["own_as", type_, to_own, from_own, self._query_id_generator])
             self._query_id_generator += 1
         else:
             self._query_log.append( ["own_as", type_, to_own, from_own, qid])
-            
+        
+        checker = SchemaChecker (
+            schema=self._schema, query_log=self._query_log, types_=self._types
+        )
+        checker.test()
+        self._types[type_].add_attribute(to_own)
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
@@ -136,30 +144,31 @@ class Builder:
             self._query_id_generator += 1
         else:
             self._query_log.append(["relates", type_, role, qid])
-            
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
         checker.test()
+        self._types[type_].add_relation_roles(role)
         return self._query_log[-1][-1]
 
-    def relatesAs(self, type_, toRole: str, fromRole: str, qid: int=-1):
+    def relates_as(self, type_, to_role: str, from_role: str, qid: int=-1):
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
-            self._schema += "\n    owns " + toRole + " as " + fromRole + ";"
+            self._schema += "\n    owns " + to_role + " as " + from_role + ";"
         else:
             self._context = type_
             self._schema += (
-                "\n" + type_ + " relates " + toRole + " as " + fromRole + ";"
+                "\n" + type_ + " relates " + to_role + " as " + from_role + ";"
             )
         
         if(qid==-1):
-            self._query_log.append( ["relatesAs", type_, toRole, fromRole, self._query_id_generator] )
+            self._query_log.append( ["relates_as", type_, to_role, from_role, self._query_id_generator] )
             self._query_id_generator += 1
         else:
-            self._query_log.append( ["relatesAs", type_, toRole, fromRole, qid] )
-            
+            self._query_log.append( ["relates_as", type_, to_role, from_role, qid] )
+        
+        self._types[type_].add_relation_roles(from_role)
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
@@ -174,24 +183,21 @@ class Builder:
         else:
             self._context = type_
             self._schema += "\n" + type_ + " plays " + relation + ":" + role + ";"
-
-        if type_ not in self._types.keys():
-            self._types[type_] = Type(type_)
-        self._types[type_].AddRole(relation, role)
         
         if(qid==-1):
             self._query_log.append(["plays", type_, relation, role, self._query_id_generator])
             self._query_id_generator += 1
         else:
             self._query_log.append(["plays", type_, relation, role, qid])
-            
+        
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
         checker.test()
+        self._types[type_].add_role(relation, role)
         return self._query_log[-1][-1]
 
-    def plays_as(self, type_: str, relation: str, toRole: str, fromRole: str, qid: int=-1):
+    def plays_as(self, type_: str, relation: str, to_role: str, from_role: str, qid: int=-1):
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
@@ -199,11 +205,11 @@ class Builder:
                 "\n    plays "
                 + relation
                 + ":"
-                + toRole
+                + to_role
                 + " as "
                 + relation
                 + ":"
-                + fromRole
+                + from_role
                 + ";"
             )
         else:
@@ -214,31 +220,33 @@ class Builder:
                 + " plays "
                 + relation
                 + ":"
-                + toRole
+                + to_role
                 + " as "
                 + relation
                 + ":"
-                + fromRole
+                + from_role
                 + ";"
             )
 
-        if type_ not in self._types.keys():
-            self._types[type_] = Type(type_)
-        self._types[type_].AddRole(relation, toRole)
         
         if(qid==-1):
-            self._query_log.append( ["plays_as", type_, relation, toRole, fromRole, self._query_id_generator])
+            self._query_log.append( ["plays_as", type_, relation, to_role, from_role, self._query_id_generator])
             self._query_id_generator += 1
         else:
-            self._query_log.append( ["plays_as", type_, relation, toRole, fromRole, qid])
-
+            self._query_log.append( ["plays_as", type_, relation, to_role, from_role, qid])
+        
+        checker = SchemaChecker (
+            schema=self._schema, query_log=self._query_log, types_=self._types
+        )
+        checker.test()
+        self._types[type_].add_role(relation, to_role)
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
         checker.test()
         return self._query_log[-1][-1]
 
-    def value(self, type_: str, value: str, qid: int=-1):
+    def value(self, type_: str, value: str, qid: int=-1): 
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
@@ -251,7 +259,7 @@ class Builder:
             self._query_log.append(["value", type_, value, self._query_id_generator])
             self._query_id_generator += 1
         else:
-            self._query_log.append(["value", type_, value, qid])
+            self._query_log.append(["value", type_, value, qid]) 
         
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
@@ -259,7 +267,7 @@ class Builder:
         checker.test()
         return self._query_log[-1][-1]
 
-    def regex(self, type_: str, regex: str, qid: int=-1):
+    def regex(self, type_: str, regex: str, qid: int=-1): 
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
@@ -273,14 +281,14 @@ class Builder:
             self._query_id_generator += 1
         else:
             self._query_log.append(["regex", type_, regex, qid])
-            
+        
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
-        )
+        )            
         checker.test()
         return self._query_log[-1][-1]
 
-    def key(self, type_: str, attribute: str, qid: int=-1):
+    def key(self, type_: str, attribute: str, qid: int=-1): 
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","
@@ -293,15 +301,15 @@ class Builder:
             self._query_log.append(["key", type_, attribute, self._query_id_generator])
             self._query_id_generator += 1
         else:
-            self._query_log.append(["key", type_, attribute, qid])
-        
+            self._query_log.append(["key", type_, attribute, qid]) 
+
         checker = SchemaChecker (
             schema=self._schema, query_log=self._query_log, types_=self._types
         )
         checker.test()
         return self._query_log[-1][-1]
 
-    def unique(self, type_: str, attribute: str, qid: int=-1):
+    def unique(self, type_: str, attribute: str, qid: int=-1): 
         if self._context == type_:
             if self._schema[-1] == ";":
                 self._schema = self._schema[:-1] + ","

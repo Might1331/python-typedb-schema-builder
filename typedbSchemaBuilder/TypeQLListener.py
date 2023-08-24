@@ -1,4 +1,4 @@
-# Generated from ./grammar/TypeQL.g4 by ANTLR 4.13.0
+# Generated from TypeQL.g4 by ANTLR 4.13.0
 from antlr4 import *
 if "." in __name__:
     from .TypeQLParser import TypeQLParser
@@ -599,15 +599,6 @@ class TypeQLListener(ParseTreeListener):
 
     # Exit a parse tree produced by TypeQLParser#label.
     def exitLabel(self, ctx:TypeQLParser.LabelContext):
-        pass
-
-
-    # Enter a parse tree produced by TypeQLParser#schema_native.
-    def enterSchema_native(self, ctx:TypeQLParser.Schema_nativeContext):
-        pass
-
-    # Exit a parse tree produced by TypeQLParser#schema_native.
-    def exitSchema_native(self, ctx:TypeQLParser.Schema_nativeContext):
         pass
 
 

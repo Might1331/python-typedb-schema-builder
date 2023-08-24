@@ -4,6 +4,7 @@ class Type:
         self.super_types = set()
         self.abstract = False
         self.roles = set()
+        self.relation_roles = set()
         self.attributes = set()
 
     def add_super_type(self, type_: str):
@@ -14,6 +15,9 @@ class Type:
 
     def add_role(self, relation: str, role: str):
         self.roles.add((relation, role))
+
+    def add_relation_roles(self, role: str):
+        self.relation_roles.add(role)
 
     def add_attribute(self, attribute: str):
         self.attributes.add(attribute)

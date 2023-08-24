@@ -2,11 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name="typedb-schema-builder",
-    version="11.0.1",
+    version="11.0.5",
     description = "typedb schema builder package",
     packages=find_packages(),
     install_requires=[
-        "antlr4-python3-runtime==4.13.0"
+        "antlr4-python3-runtime"
     ],
     author="Pratap Singh",
     author_email="pratap.singh@vaticle.com",
