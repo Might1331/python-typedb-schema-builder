@@ -4,36 +4,32 @@ typedb schema builder package
 How to test the builder out:
 1. Install using pip
    ``` 
-      pip install -i https://test.pypi.org/simple/ typedb-schema-builder==11.0.3
+      pip install -i https://test.pypi.org/simple/ typedb-schema-builder
    ```
 2. Create builder_instance and use following methods offered via builder instance to create your schemas
 
    Example:
    
-   ```
+      ```
       from typedbSchemaBuilder import Builder
       
-      builder_instance=Builder.Builder()
+      builder=Builder.Builder()
       
-      builder_instance.sub("person","entity")
-      builder_instance.owns("person","name")
+      builder.sub("person", "entity")
+      builder.sub("ownership", "relation")
+      builder.relates("ownership", "owner")
+      builder.plays("person", "ownership", "owner")
       
-      builder_instance.sub("name","attribute")
-      builder_instance.value("name","string")
-      builder_instance.regex("name","a-zA-Z0-9,\\.\'")
-      
-      qid=builder_instance.key("person","name")
-      builder_instance.remove([qid])
-      builder_instance.get_schema()
-   ```
-   ```
+      builder.get_schema()
+      ```
+      ```
       Output:
-      person sub entity,
-          owns name;
-      name sub attribute,
-          value string,
-          regex "a-zA-Z0-9,\.'";
-   ```
+         define
+         person sub entity;
+         ownership sub relation,
+             relates owner;
+         person plays ownership:owner;
+      ```
 Functions offered:
 
 * builder_instance.get_schema():
