@@ -6,6 +6,7 @@ class Type:
         self.roles = set()
         self.relation_roles = set()
         self.attributes = set()
+        self.root_type="None"
 
     def add_super_type(self, type_: str):
         self.super_types.add(type_)

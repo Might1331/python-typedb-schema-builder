@@ -12,10 +12,7 @@ class SchemaChecker:
         self.query_log = query_log
         self.types = types_
 
-    def test(self)-> None:
-        if len(self.query_log) == 0:
-            raise Exception("Error: Schema is empty. Make changes to the schema before attempting GetSchema")
-        
+    def test(self)-> None:        
         self.grammar_check(copy.deepcopy(self.schema))
         self.predefined_type_check()
         self.check_regex()
@@ -123,9 +120,9 @@ class SchemaChecker:
                 owns = query[2]
                 if owns not in self.types[type].attributes:
                     raise Exception(
-                        "Error: Type="+
+                        "Error: Type = "+
                         type+
-                        "does not own:"+
+                        " does not own:"+
                         owns+
                         "\nqid:"+
                         str(query[-1])
@@ -143,17 +140,17 @@ class SchemaChecker:
             elif query[0] in ["relates","relates_as"]:
                 if query[1] not in self.types.keys():
                     raise Exception("Error: type = "+query[1]+" is not defined"+"\nqid: "+str(query[-1]))
-                elif "relation" not in self.types[query[1]].super_types:
+                elif "relation" not in self.types[query[1]].root_type:
                     raise Exception("Error:"+query[1]+" is not an relation type"+"\nqid: "+str(query[-1]))
             elif query[0] in ["owns","owns_as","key","unique"]:
                 if query[1] not in self.types.keys():
                     raise Exception("Error: type = "+query[1]+" is not defined"+"\nqid: "+str(query[-1]))
-                elif "entity" not in self.types[query[1]].super_types:
+                elif "entity" not in self.types[query[1]].root_type:
                     raise Exception("Error:"+query[1]+" is not an entity type"+"\nqid: "+str(query[-1]))
                 
                 if query[-2] not in self.types.keys():
                     raise Exception("Error:"+query[-2]+" is not defined"+"\nqid: "+str(query[-1]))
-                elif "attribute" not in self.types[query[-2]].super_types:
+                elif "attribute" not in self.types[query[-2]].root_type:
                     raise Exception("Error:"+query[-2]+" is not an attribute type"+"\nqid: "+str(query[-1]))
             elif query[0] in ["sub"]:
                 if query[-2] not in self.types.keys():
@@ -161,12 +158,12 @@ class SchemaChecker:
             elif query[0] in ["plays","plays_as"]:
                 if query[1] not in self.types.keys():
                     raise Exception("Error: type = "+query[1]+" is not defined"+"\nqid: "+str(query[-1]))
-                if "entity" not in self.types[query[1]].super_types:
+                if "entity" != self.types[query[1]].root_type:
                     raise Exception("Error: not entity, type = "+query[1]+"\nqid: "+str(query[-1]))
                 
                 if query[2] not in self.types.keys():
                     raise Exception("Error: relationship type = "+query[2]+" is not defined"+"\nqid: "+str(query[-1]))
-                if "relation" not in self.types[query[2]].super_types:
+                if "relation" != self.types[query[2]].root_type:
                     raise Exception("Error: not relationship, type = "+query[2]+"\nqid: "+str(query[-1]))
                 
                 if query[-2] not in self.types[query[2]].relation_roles:

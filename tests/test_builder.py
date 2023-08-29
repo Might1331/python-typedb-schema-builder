@@ -4,66 +4,218 @@ from typedbSchemaBuilder import Builder
 class TestBuilder(unittest.TestCase):
 
     def setUp(self):
-        self.builder_instance = Builder.Builder()
+        self.builder = Builder.Builder()
 
     def test_abstract(self):
-        self.builder_instance.sub("brother","entity")
-        self.builder_instance.abstract("brother")
+        self.builder.sub("brother","entity")
+        self.builder.abstract("brother")
         expected_output= 'define\n'+ 'brother sub entity,\n'+ '    abstract;'
-        message = "Abstract method failed"
+        message = "abstract method failed"
         
         # Add assertions to test the behavior of the abstract function
-        self.assertEqual(self.builder_instance.get_schema(), expected_output, message)
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
 
     def test_sub(self):
-        self.builder_instance.sub("sister", "entity")
+        self.builder.sub("sister", "entity")
         expected_output='define\n'+'sister sub entity;'
         message = "sub method failed"
         
         # Add assertions to test the behavior of the sub function
-        self.assertEqual(self.builder_instance.get_schema(), expected_output, message)
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
 
     def test_owns(self):
-        self.builder_instance.sub("name","attribute")
-        self.builder_instance.sub("sister", "entity")
-        self.builder_instance.owns("sister","name")
+        self.builder.sub("name","attribute")
+        self.builder.sub("sister", "entity")
+        self.builder.owns("sister","name")
         expected_output='define\n'+'name sub attribute;\n'+'sister sub entity,\n'+'    owns name;'
         message = "owns method failed"
         
         # Add assertions to test the behavior of the owns function
-        self.assertEqual(self.builder_instance.get_schema(), expected_output, message)
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
 
     def test_owns_as(self):
-        self.builder_instance.sub("person","entity")
-        self.builder_instance.own_as("person","nickname","name")
-        self.builder_instance.sub("name","attribute")
+        self.builder.sub("person","entity")
+        self.builder.own_as("person","nickname","name")
+        self.builder.sub("name","attribute")
         expected_output='define\n'+'person sub entity,\n'+'    owns nickname as name;\n'+'name sub attribute;'
-        message = "owns method failed"
+        message = "owns_as method failed"
         
         # Add assertions to test the behavior of the owns function
-        self.assertEqual(self.builder_instance.get_schema(), expected_output, message)
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
 
     def test_relates(self):
-        pass        
-# builder_instance.relates(type: str, role: str): Adds a role given as argument "role" to a relationship type given as argument "type". Returns qid attached to the query.
+        self.builder.sub("leaderboard","relation")
+        self.builder.relates("leaderboard","participant")
+        self.builder.relates("leaderboard","rank")
+        expected_output = "define\nleaderboard sub relation,\n    relates participant,\n    relates rank;"
+        message = "relates method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
 
-# builder_instance.relates_as(type: str, to_role: str, from_role: str): Adds a role given as argument "from_role" to an alias given as argument "to_role" to type given as argument "type". Returns qid attached to the query.
 
-# builder_instance.plays(type: str, relation: str, role: str): Assigns the relation:role, where relation is given as argument "relation" and role is given as argument "role" to the type given as argument "type". Returns qid attached to the query.
+    def test_relates_as(self):
+        self.builder.sub("leaderboard","relation")
+        self.builder.relates("leaderboard","participant")
+        self.builder.relates("leaderboard","rank")
+        
+        
+        self.builder.sub("queue","leaderboard")
+        self.builder.relates_as("queue","person","participant")
+        self.builder.relates_as("queue","queue_token_number","rank")
+        
+        expected_output = """define
+leaderboard sub relation,
+    relates participant,
+    relates rank;
+queue sub leaderboard,
+    owns person as participant,
+    owns queue_token_number as rank;"""
 
-# builder_instance.plays_as(type: str, relation: str, to_role: str, from_role: str): Assigns the relation:role, where relation is given as argument "relation" and role is given as argument "from_role" to alias given as "to_role" to the type given as argument "type". Returns qid attached to the query.
+        message = "relates_as method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
 
-# builder_instance.value(type: str, value: str): Specifies the value given as argument "value" to attribute type given as argument "type". Returns qid attached to the query.
+    def test_plays(self):
+        self.builder.sub("person", "entity")
+        self.builder.sub("ownership", "relation")
+        self.builder.relates("ownership", "owner")
+        self.builder.plays("person", "ownership", "owner")
+        
+        expected_output = """define
+person sub entity;
+ownership sub relation,
+    relates owner;
+person plays ownership:owner;"""
 
-# builder_instance.regex(type: str, regex: str): Adds a regex pattern given as argument "regex" to attribute type given as argument "type". Returns qid attached to the query.
 
-# builder_instance.key(type: str, attribute: str): Makes the attribute given as atrgument "attribute" that is owned by type given as argument "type" a @key attribute.
+        message = "plays method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
 
-# builder_instance.unique(self, type: str, attribute: str): Makes the attribute given as atrgument "attribute" that is owned by type given as argument "type" a @unique attribute. Returns qid attached to the query.
+    def test_plays_as(self):
+        self.builder.sub("person", "entity")
+        self.builder.sub("ownership", "relation")
+        self.builder.relates("ownership", "owner")
+        self.builder.plays_as("person", "landlord","ownership", "owner")
+        
+        expected_output = """define
+person sub entity;
+ownership sub relation,
+    relates owner;
+person plays ownership:owner;"""
 
-# builder_instance.print_query_log(): Prints all the query IDs attached to every query.
 
-# builder_instance.remove(q_ids: list): Removes all the queries given in list argument "q_ids". And re-renders the remaining queries.
+        message = "plays_as method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
+
+    def test_value(self):
+        self.builder.sub("name","attribute")
+        self.builder.value("name","string")
+        
+        expected_output = """define
+name sub attribute,
+    value string;"""
+
+        message = "value method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
+        
+    def test_regex(self):
+        self.builder.sub("name","attribute")
+        self.builder.value("name","string")
+        self.builder.regex("name","[ABC]*")
+        
+        expected_output = """define
+name sub attribute,
+    value string,
+    regex "[ABC]*";"""
+
+
+        message = "regex method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
+        
+    def test_key(self):
+        self.builder.sub("name","attribute")
+        self.builder.value("name","string")
+        self.builder.regex("name","[ABC]*")
+        self.builder.sub("person","entity")
+        self.builder.owns("person","name")
+        self.builder.key("person","name")
+        
+        expected_output = """define
+name sub attribute,
+    value string,
+    regex "[ABC]*";
+person sub entity,
+    owns name,
+    owns name @key;"""
+
+
+        message = "key method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
+        
+    def test_unique(self):
+        self.builder.sub("name","attribute")
+        self.builder.value("name","string")
+        self.builder.regex("name","[ABC]*")
+        self.builder.sub("person","entity")
+        self.builder.owns("person","name")
+        self.builder.unique("person","name")
+        
+        expected_output = """define
+name sub attribute,
+    value string,
+    regex "[ABC]*";
+person sub entity,
+    owns name,
+    owns name @unique;"""
+
+
+        message = "uninque method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
+
+        
+    def test_remove(self):
+        self.builder.sub("name","attribute")
+        self.builder.value("name","string")
+        self.builder.regex("name","[ABC]*")
+        self.builder.sub("person","entity")
+        self.builder.owns("person","name")
+        qid=self.builder.unique("person","name")
+        self.builder.key("person","name")
+        self.builder.remove([qid])
+
+        expected_output = """define
+name sub attribute,
+    value string,
+    regex "[ABC]*";
+person sub entity,
+    owns name,
+    owns name @key;"""
+
+
+
+        message = "remove method failed"
+        
+        # Add assertions to test the behavior of the owns function
+        self.assertEqual(self.builder.get_schema(), expected_output, message)
+
+
+# builder.print_query_log(): Prints all the query IDs attached to every query.
+
+# builder.remove(q_ids: list): Removes all the queries given in list argument "q_ids". And re-renders the remaining queries.
 
 if __name__ == '__main__':
     unittest.main()
