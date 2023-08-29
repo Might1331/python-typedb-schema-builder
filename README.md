@@ -8,13 +8,28 @@ How to test the builder out:
    ```
 2. Create builder_instance and use following methods offered via builder instance to create your schemas
 
-   ``` 
+   Example:
+   
+      ```
       from typedbSchemaBuilder import Builder
       
-      builder_instance=Builder.Builder()
-   ```
-
-   
+      builder=Builder.Builder()
+      
+      builder.sub("person", "entity")
+      builder.sub("ownership", "relation")
+      builder.relates("ownership", "owner")
+      builder.plays("person", "ownership", "owner")
+      
+      builder.get_schema()
+      ```
+      ```
+      Output:
+         define
+         person sub entity;
+         ownership sub relation,
+             relates owner;
+         person plays ownership:owner;
+      ```
 Functions offered:
 
 * builder_instance.get_schema():
