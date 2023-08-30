@@ -227,11 +227,9 @@ class Builder:
                 "\n    plays "
                 + relation
                 + ":"
-                + to_role
-                + " as "
-                + relation
-                + ":"
                 + from_role
+                + " as "
+                + to_role
                 + ";"
             )
         else:
@@ -242,11 +240,9 @@ class Builder:
                 + " plays "
                 + relation
                 + ":"
-                + to_role
-                + " as "
-                + relation
-                + ":"
                 + from_role
+                + " as "
+                + to_role
                 + ";"
             )
 

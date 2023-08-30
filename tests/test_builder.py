@@ -99,13 +99,14 @@ person plays ownership:owner;"""
         self.builder.sub("person", "entity")
         self.builder.sub("ownership", "relation")
         self.builder.relates("ownership", "owner")
-        self.builder.plays_as("person", "landlord","ownership", "owner")
+        self.builder.plays_as("person", "ownership","landlord", "owner")
         
         expected_output = """define
 person sub entity;
 ownership sub relation,
     relates owner;
-person plays ownership:owner;"""
+person plays ownership:owner as landlord;"""
+
 
 
         message = "plays_as method failed"

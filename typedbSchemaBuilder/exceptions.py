@@ -92,22 +92,22 @@ class SchemaChecker:
                             "\nThe subtype is already defined\nqid:"+
                             str(query[-1])
                         )
-            if query[0] == "plays" or query[0] == "plays_as":
-                if len(self.types[query[1]].roles)>1:
-                    raise Exception(
-                        "Error, Cannot have multiple roles:",
-                        self.types[query[1]].roles,
-                        "\nqid:"+
-                        str(query[-1])
-                    )
-                elif len(self.types[query[1]].roles) and (query[2],query[-2]) not in self.types[query[1]].roles:
-                    raise Exception(
-                        "Error, Cannot have multiple roles:",
-                        self.types[query[1]].roles,
-                        "\nqid:"+
-                        str(query[-1]),
-                        len(self.types[query[1]].roles)
-                    )
+            # if query[0] == "plays" or query[0] == "plays_as":
+            #     if len(self.types[query[1]].roles)>1:
+            #         raise Exception(
+            #             "Error, Cannot have multiple roles:",
+            #             self.types[query[1]].roles,
+            #             "\nqid:"+
+            #             str(query[-1])
+            #         )
+            #     elif len(self.types[query[1]].roles) and (query[2],query[-2]) not in self.types[query[1]].roles:
+            #         raise Exception(
+            #             "Error, Cannot have multiple roles:",
+            #             self.types[query[1]].roles,
+            #             "\nqid:"+
+            #             str(query[-1]),
+            #             len(self.types[query[1]].roles)
+            #         )
 
     def key_unique_ownership_check(self) -> None:
         query_log_twin = copy.deepcopy(self.query_log)
