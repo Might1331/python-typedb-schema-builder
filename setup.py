@@ -6,7 +6,7 @@ setup(
     description = "typedb schema builder package",
     packages=find_packages(),
     install_requires=[
-        "antlr4-python3-runtime"
+        "antlr4-python3-runtime==4.7.2"
     ],
     author="Pratap Singh",
     author_email="pratap.singh@vaticle.com",
