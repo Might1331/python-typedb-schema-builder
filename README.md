@@ -4,7 +4,7 @@ typedb schema builder package
 How to test the builder out:
 1. Install using pip
    ``` 
-      pip install -i https://test.pypi.org/simple/ typedb-schema-builder
+      py -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ typedb-schema-builder
    ```
 2. Create builder_instance and use following methods offered via builder instance to create your schemas
 
