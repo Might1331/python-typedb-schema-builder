@@ -7,3 +7,4 @@ dist
 build
 typedb_schema_builder.egg-info
 test_use_case.py
+requirements.txt
