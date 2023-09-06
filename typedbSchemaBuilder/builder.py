@@ -9,28 +9,41 @@ class Builder:
         self._context = "?#"
         self._query_log = deque()
         self._query_id_generator = 1
+        self._types=dict()
+        self.init_types()
+
+    def init_types(self):
         self._types = {
             "attribute": Type("attribute"),
             "entity": Type("entity"),
             "relation": Type("relation")
         }
-        self._types["attribute"].add_super_type("thing")
         self._types["attribute"].root_type="attribute"
-        self._types["entity"].add_super_type("thing")
         self._types["entity"].root_type="entity"
-        self._types["relation"].add_super_type("thing")
         self._types["relation"].root_type="relation"
-
+    
     def get_schema(self):        
         if len(self._query_log) == 0:
             raise Exception("Error: Schema is empty. Make changes to the schema before attempting GetSchema")
+        
+        
+        n = len(self._query_log)
+        self._schema = "define"
+        self._context= "?#"
+        
+        old_query_log=deque()
+        old_query_log,self._query_log=self._query_log,old_query_log
+        
+        self.init_types()
+        
+        for i in range(0, n):
+            query = old_query_log[0]
+            old_query_log.popleft()
+            self.make_query(query)
+            
         escaped_string = r"" + self._schema
         decoded_string = bytes(escaped_string, "utf-8").decode("unicode_escape")
         print(decoded_string)
-        checker = SchemaChecker (
-            schema=self._schema, query_log=self._query_log, types_=self._types
-        )
-        checker.test()
         return decoded_string
 
     def abstract(self, type_: str, qid: int=-1):
@@ -62,30 +75,37 @@ class Builder:
         self._query_log=query_log
         return self._query_log[-1][-1]
 
-    def sub(self, subtype: str, type_: str, qid: int=-1):
+    def sub(self, subtype: str, type_: str, value: str=None, qid: int=-1):
         self._context = subtype
-        self._schema += "\n" + subtype + " sub " + type_ + ";"
+        if value is not None:
+            if self._types[type_].root_type == "attribute":
+                self._schema += "\n" + subtype + " sub " + type_ + ","
+                self._schema += "\n    value " + value + ";"
+            else:
+                raise Exception("Non attribute type cannot have a value")
+        else:
+            self._schema += "\n" + subtype + " sub " + type_ + ";"
+            
 
         query_log=copy.deepcopy(self._query_log)
         if(qid==-1):
-            query_log.append(["sub", subtype, type_, self._query_id_generator])
+            query_log.append(["sub", subtype, type_, value, self._query_id_generator])
             self._query_id_generator += 1
         else:
-            query_log.append(["sub", subtype, type_, qid])
+            query_log.append(["sub", subtype, type_, value, qid])
             
         checker = SchemaChecker (
             schema=self._schema, query_log=query_log, types_=self._types
         )
         checker.test()
+        checker.super_type_check()
+        
         self._types[subtype] = Type(subtype)
+        self._types[subtype].inherit(self._types[type_])
         self._types[subtype].add_super_type(type_)
-        self._types[subtype].root_type=self._types[type_].root_type            
-        checker = SchemaChecker (
-            schema=self._schema, query_log=self._query_log, types_=self._types
-        )
-        checker.test()
         
         self._query_log=query_log
+
         return self._query_log[-1][-1]
 
     def owns(self, type_: str, owns: str, qid: int=-1):
@@ -267,29 +287,30 @@ class Builder:
         self._query_log=query_log
         return self._query_log[-1][-1]
 
-    def value(self, type_: str, value: str, qid: int=-1): 
-        if self._context == type_:
-            if self._schema[-1] == ";":
-                self._schema = self._schema[:-1] + ","
-            self._schema += "\n    value " + value + ";"
-        else:
-            self._context = type_
-            self._schema += "\n" + type_ + " value " + value + ";"
+# value should be added while subtyping attribute
+    # def value(self, type_: str, value: str, qid: int=-1): 
+    #     if self._context == type_:
+    #         if self._schema[-1] == ";":
+    #             self._schema = self._schema[:-1] + ","
+    #         self._schema += "\n    value " + value + ";"
+    #     else:
+    #         self._context = type_
+    #         self._schema += "\n" + type_ + " value " + value + ";"
 
-        query_log=copy.deepcopy(self._query_log)
-        if(qid==-1):
-            query_log.append(["value", type_, value, self._query_id_generator])
-            self._query_id_generator += 1
-        else:
-            query_log.append(["value", type_, value, qid]) 
+    #     query_log=copy.deepcopy(self._query_log)
+    #     if(qid==-1):
+    #         query_log.append(["value", type_, value, self._query_id_generator])
+    #         self._query_id_generator += 1
+    #     else:
+    #         query_log.append(["value", type_, value, qid]) 
         
-        checker = SchemaChecker (
-            schema=self._schema, query_log=query_log, types_=self._types
-        )
-        checker.test()
+    #     checker = SchemaChecker (
+    #         schema=self._schema, query_log=query_log, types_=self._types
+    #     )
+    #     checker.test()
         
-        self._query_log=query_log
-        return self._query_log[-1][-1]
+    #     self._query_log=query_log
+    #     return self._query_log[-1][-1]
 
     def regex(self, type_: str, regex: str, qid: int=-1): 
         if self._context == type_:
@@ -366,14 +387,17 @@ class Builder:
     # idea for remove recontrust schema after negating some queries using query ids and reconstructing schema
     def make_query(self, query: list):
             query_type = query[0]
-            method_name = query_type.replace("_", "")
-            getattr(self, method_name)(*query[1:])
+            getattr(self, query_type)(*query[1:])
 
     def remove(self, q_ids: list):
         n = len(self._query_log)
         self._schema = "define"
+        self._context= "?#"
+        
         old_query_log=deque()
         old_query_log,self._query_log=self._query_log,old_query_log
+        
+        self.init_types()
         for i in range(0, n):
             query = old_query_log[0]
             old_query_log.popleft()

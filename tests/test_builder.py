@@ -24,10 +24,14 @@ class TestBuilder(unittest.TestCase):
         self.assertEqual(self.builder.get_schema(), expected_output, message)
 
     def test_owns(self):
-        self.builder.sub("name","attribute")
+        self.builder.sub("name","attribute","string")
         self.builder.sub("sister", "entity")
         self.builder.owns("sister","name")
-        expected_output='define\n'+'name sub attribute;\n'+'sister sub entity,\n'+'    owns name;'
+        expected_output="""define
+name sub attribute,
+    value string;
+sister sub entity,
+    owns name;"""
         message = "owns method failed"
         
         # Add assertions to test the behavior of the owns function
@@ -36,8 +40,12 @@ class TestBuilder(unittest.TestCase):
     def test_owns_as(self):
         self.builder.sub("person","entity")
         self.builder.own_as("person","nickname","name")
-        self.builder.sub("name","attribute")
-        expected_output='define\n'+'person sub entity,\n'+'    owns nickname as name;\n'+'name sub attribute;'
+        self.builder.sub("name","attribute","string")
+        expected_output="""define
+person sub entity,
+    owns nickname as name;
+name sub attribute,
+    value string;"""
         message = "owns_as method failed"
         
         # Add assertions to test the behavior of the owns function
@@ -107,29 +115,13 @@ ownership sub relation,
     relates owner;
 person plays ownership:owner as landlord;"""
 
-
-
         message = "plays_as method failed"
         
         # Add assertions to test the behavior of the owns function
         self.assertEqual(self.builder.get_schema(), expected_output, message)
 
-    def test_value(self):
-        self.builder.sub("name","attribute")
-        self.builder.value("name","string")
-        
-        expected_output = """define
-name sub attribute,
-    value string;"""
-
-        message = "value method failed"
-        
-        # Add assertions to test the behavior of the owns function
-        self.assertEqual(self.builder.get_schema(), expected_output, message)
-        
     def test_regex(self):
-        self.builder.sub("name","attribute")
-        self.builder.value("name","string")
+        self.builder.sub("name","attribute","string")
         self.builder.regex("name","[ABC]*")
         
         expected_output = """define
@@ -144,8 +136,7 @@ name sub attribute,
         self.assertEqual(self.builder.get_schema(), expected_output, message)
         
     def test_key(self):
-        self.builder.sub("name","attribute")
-        self.builder.value("name","string")
+        self.builder.sub("name","attribute","string")
         self.builder.regex("name","[ABC]*")
         self.builder.sub("person","entity")
         self.builder.owns("person","name")
@@ -166,8 +157,7 @@ person sub entity,
         self.assertEqual(self.builder.get_schema(), expected_output, message)
         
     def test_unique(self):
-        self.builder.sub("name","attribute")
-        self.builder.value("name","string")
+        self.builder.sub("name","attribute","string")
         self.builder.regex("name","[ABC]*")
         self.builder.sub("person","entity")
         self.builder.owns("person","name")
@@ -189,8 +179,7 @@ person sub entity,
 
         
     def test_remove(self):
-        self.builder.sub("name","attribute")
-        self.builder.value("name","string")
+        self.builder.sub("name","attribute","string")
         self.builder.regex("name","[ABC]*")
         self.builder.sub("person","entity")
         self.builder.owns("person","name")
@@ -213,10 +202,6 @@ person sub entity,
         # Add assertions to test the behavior of the owns function
         self.assertEqual(self.builder.get_schema(), expected_output, message)
 
-
-# builder.print_query_log(): Prints all the query IDs attached to every query.
-
-# builder.remove(q_ids: list): Removes all the queries given in list argument "q_ids". And re-renders the remaining queries.
 
 if __name__ == '__main__':
     unittest.main()
