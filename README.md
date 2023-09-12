@@ -38,8 +38,8 @@ Returns schema string and prints schema string.
 * builder_instance.abstract(type: str):
 Makes type abstract. Returns qid attached to the query.
 
-* builder_instance.sub(subtype: str, type: str):
-Create a new type given as argument "subtype" with supertype given as argument "type". Returns qid attached to the query.
+* builder_instance.sub(subtype: str, type: str,value: str):
+Create a new type given as argument "subtype" with supertype given as argument "type". The value parameter needs to be mentioned only when defining types with root type "attribute". Returns qid attached to the query.
 
 * builder_instance.owns(type: str, owns: str):
 Assigns ownership of attribute given as argument "owns" to type given as argument "type". Returns qid attached to the query.
@@ -58,9 +58,6 @@ Assigns the relation:role, where relation is given as argument "relation" and ro
 
 * builder_instance.plays_as(type: str, relation: str, to_role: str, from_role: str):
 Assigns the relation:role, where relation is given as argument "relation" and role is given as argument "from_role" to alias given as "to_role" to the type given as argument "type". Returns qid attached to the query.
-
-* builder_instance.value(type: str, value: str):
-Specifies the value given as argument "value" to attribute type given as argument "type". Returns qid attached to the query.
 
 * builder_instance.regex(type: str, regex: str):
 Adds a regex pattern given as argument "regex" to attribute type given as argument "type". Returns qid attached to the query.
