@@ -35,9 +35,3 @@ class Type:
         
     def set_value(self,value: str):
         self.value=value
-    
-# properties or getter/setter
-# fix abstract subtyping (Later)
-# attribute needs value while defining (maybe add extra parameter)
-# fix indexing from 0.0.1
-# add description

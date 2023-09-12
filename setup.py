@@ -8,7 +8,7 @@ setup(
     name="typedb-schema-builder",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version="11.0.10",
+    version="11.0.11",
     description = "typedb schema builder package",
     packages=find_packages(),
     install_requires=[
